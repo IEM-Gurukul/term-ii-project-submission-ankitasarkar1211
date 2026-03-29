@@ -10,6 +10,7 @@ import models.Book;
 
 public class LibraryService {
 
+    // ADD BOOK
     public void addBook(Book book) {
         try {
             Connection con = DBConnection.getConnection();
@@ -20,16 +21,16 @@ public class LibraryService {
             ps.setInt(1, book.getId());
             ps.setString(2, book.getTitle());
             ps.setString(3, book.getAuthor());
-            ps.setInt(4, 0);
+            ps.setInt(4, 0); // not issued
 
             ps.executeUpdate();
-            System.out.println("Book Added!");
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error adding book: " + e.getMessage());
         }
     }
 
+    // DISPLAY BOOKS (console - optional)
     public void displayBooks() {
         try {
             Connection con = DBConnection.getConnection();
@@ -47,10 +48,41 @@ public class LibraryService {
             }
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error displaying books: " + e.getMessage());
         }
     }
 
+    // ✅ NEW METHOD → FOR UI
+    public String getAllBooks() {
+        StringBuilder result = new StringBuilder();
+
+        try {
+            Connection con = DBConnection.getConnection();
+            Statement st = con.createStatement();
+
+            ResultSet rs = st.executeQuery("SELECT * FROM books");
+
+            while (rs.next()) {
+                result.append(
+                        rs.getInt("id") + " | " +
+                        rs.getString("title") + " | " +
+                        rs.getString("author") + " | Issued: " +
+                        rs.getInt("isIssued") + "\n"
+                );
+            }
+
+            if (result.length() == 0) {
+                return "No books found!";
+            }
+
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+
+        return result.toString();
+    }
+
+    // ISSUE BOOK
     public void issueBook(int id) {
         try {
             Connection con = DBConnection.getConnection();
@@ -59,15 +91,18 @@ public class LibraryService {
             PreparedStatement ps = con.prepareStatement(query);
 
             ps.setInt(1, id);
-            ps.executeUpdate();
+            int rows = ps.executeUpdate();
 
-            System.out.println("Book Issued!");
+            if (rows == 0) {
+                System.out.println("Book not found!");
+            }
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error issuing book: " + e.getMessage());
         }
     }
 
+    // RETURN BOOK
     public void returnBook(int id) {
         try {
             Connection con = DBConnection.getConnection();
@@ -76,12 +111,14 @@ public class LibraryService {
             PreparedStatement ps = con.prepareStatement(query);
 
             ps.setInt(1, id);
-            ps.executeUpdate();
+            int rows = ps.executeUpdate();
 
-            System.out.println("Book Returned!");
+            if (rows == 0) {
+                System.out.println("Book not found!");
+            }
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error returning book: " + e.getMessage());
         }
     }
 }
